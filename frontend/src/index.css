@@ -1,32 +1,280 @@
+/* ============================================================
+   BUTTERFREE — Butterfly-Inspired Design System
+   Palette: Ivory bg · Deep teal · Amber · Magenta · Emerald
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --cat-yellow: #FFCD11;
-  --cat-black: #1A1A1A;
-  --cat-dark-gray: #2B2B2B;
-  --cat-light-gray: #F4F4F6;
-  --cat-border: #E0E0E0;
-  --cat-danger: #D32F2F;
-  --cat-warning: #ED6C02;
-  --cat-success: #2E7D32;
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Butterfly Palette */
+  --bf-ivory:       #FAF7F0;          /* wing-base cream */
+  --bf-parchment:   #F2EDE0;          /* warm off-white panels */
+  --bf-teal:        #1A5F7A;          /* deep morpho-wing teal */
+  --bf-teal-light:  #2A8FAD;          /* mid teal */
+  --bf-teal-glow:   rgba(26,95,122,0.15);
+  --bf-amber:       #D4870A;          /* tiger swallowtail amber */
+  --bf-amber-light: #F5A623;          /* warm golden yellow */
+  --bf-amber-glow:  rgba(212,135,10,0.18);
+  --bf-magenta:     #A8273A;          /* red admiral accent */
+  --bf-magenta-light:#E8435A;
+  --bf-magenta-glow: rgba(168,39,58,0.15);
+  --bf-emerald:     #1C6B47;          /* caterpillar green */
+  --bf-emerald-light:#28A065;
+  --bf-charcoal:    #1C1C2E;          /* body / text */
+  --bf-slate:       #3D3D5C;          /* secondary text */
+  --bf-border:      #DDD5C0;          /* warm border */
+  --bf-shadow:      rgba(28,28,46,0.10);
+
+  /* Semantic aliases (keep backward compat with existing JSX) */
+  --cat-yellow:     var(--bf-amber-light);
+  --cat-black:      var(--bf-charcoal);
+  --cat-dark-gray:  var(--bf-slate);
+  --cat-light-gray: var(--bf-parchment);
+  --cat-border:     var(--bf-border);
+  --cat-danger:     var(--bf-magenta);
+  --cat-warning:    var(--bf-amber);
+  --cat-success:    var(--bf-emerald);
+
+  /* Typography */
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* ======================== RESET ======================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ======================== BODY ======================== */
 body {
   font-family: var(--font-family);
-  background-color: var(--cat-light-gray);
-  color: var(--cat-black);
-  line-height: 1.5;
+  background-color: var(--bf-ivory);
+  color: var(--bf-charcoal);
+  line-height: 1.6;
+  /* Subtle organic texture via radial blobs */
+  background-image:
+    radial-gradient(ellipse 900px 600px at 80% -10%, rgba(26,95,122,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 700px 500px at -10% 80%, rgba(212,135,10,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 50% 110%, rgba(168,39,58,0.04) 0%, transparent 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
+/* ======================== TYPOGRAPHY ======================== */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--bf-charcoal);
+}
+
+/* ======================== BUTTONS ======================== */
 button {
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.22s ease;
+  position: relative;
+  overflow: hidden;
+}
+button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+button:active { transform: translateY(0px); }
+
+/* ======================== CARDS ======================== */
+.bf-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 12px var(--bf-shadow), 0 0 0 1px var(--bf-border);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.bf-card:hover { box-shadow: 0 6px 24px var(--bf-shadow); }
+
+/* Accent bar variant */
+.bf-card--teal  { border-top: 4px solid var(--bf-teal); }
+.bf-card--amber { border-top: 4px solid var(--bf-amber); }
+.bf-card--magenta { border-top: 4px solid var(--bf-magenta); }
+.bf-card--emerald { border-top: 4px solid var(--bf-emerald); }
+.bf-card--left-teal   { border-left: 5px solid var(--bf-teal); }
+.bf-card--left-amber  { border-left: 5px solid var(--bf-amber); }
+.bf-card--left-emerald{ border-left: 5px solid var(--bf-emerald); }
+.bf-card--left-magenta{ border-left: 5px solid var(--bf-magenta); }
+
+/* ======================== BADGES ======================== */
+.bf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.bf-badge--optimal  { background: #E6F5EC; color: var(--bf-emerald); }
+.bf-badge--warning  { background: #FEF3E2; color: var(--bf-amber); }
+.bf-badge--danger   { background: #FCEAEC; color: var(--bf-magenta); }
+.bf-badge--teal     { background: #E4F2F8; color: var(--bf-teal); }
+
+/* ======================== TABLES ======================== */
+table { border-collapse: collapse; width: 100%; }
+thead { background: var(--bf-parchment); }
+th { padding: 0.85rem 1rem; font-size: 0.8rem; font-weight: 700; color: var(--bf-slate); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 2px solid var(--bf-border); }
+td { padding: 0.9rem 1rem; font-size: 0.9rem; border-bottom: 1px solid var(--bf-border); }
+tbody tr { transition: background 0.15s ease; }
+tbody tr:hover { background: var(--bf-parchment); }
+
+/* ======================== INPUTS / SELECTS ======================== */
+input, select {
+  font-family: var(--font-family);
+  border: 1.5px solid var(--bf-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--bf-charcoal);
+  background: #FFFFFF;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  outline: none;
+}
+input:focus, select:focus {
+  border-color: var(--bf-teal-light);
+  box-shadow: 0 0 0 3px var(--bf-teal-glow);
 }
 
+/* ======================== BUTTERFLY ANIMATIONS ======================== */
+
+/* Wing flutter — scales on X axis like butterfly wings flapping */
+@keyframes wing-flutter {
+  0%   { transform: scaleX(1) scaleY(1); }
+  20%  { transform: scaleX(0.82) scaleY(1.04); }
+  40%  { transform: scaleX(1) scaleY(1); }
+  60%  { transform: scaleX(0.78) scaleY(1.06); }
+  80%  { transform: scaleX(1) scaleY(1); }
+  100% { transform: scaleX(0.85) scaleY(1.03); }
+}
+
+/* Petal drift — gentle floating up */
+@keyframes petal-drift {
+  0%   { transform: translateY(0px) rotate(0deg); opacity: 1; }
+  50%  { transform: translateY(-8px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+}
+
+/* Antennae pulse — glowing breathe effect */
+@keyframes antennae-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(26,95,122,0); }
+  50%       { box-shadow: 0 0 0 6px rgba(26,95,122,0.25); }
+}
+
+/* Emergence — fly-in from below */
+@keyframes emergence {
+  0%   { opacity: 0; transform: translateY(18px); }
+  100% { opacity: 1; transform: translateY(0px); }
+}
+
+/* Shimmer sweep */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Block link — blockchain block slide-in */
+@keyframes block-link {
+  0%   { opacity: 0; transform: translateX(-12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Spin — for loading / verification */
+@keyframes bf-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ======================== UTILITY CLASSES ======================== */
+.animate-emergence { animation: emergence 0.45s ease forwards; }
+.animate-flutter   { animation: wing-flutter 2.4s ease-in-out infinite; }
+.animate-drift     { animation: petal-drift 3s ease-in-out infinite; }
+.animate-pulse     { animation: antennae-pulse 2s ease-in-out infinite; }
+.animate-block     { animation: block-link 0.4s ease forwards; }
+.animate-spin      { animation: bf-spin 1s linear infinite; }
+
+/* Staggered children emergence */
+.stagger-children > *:nth-child(1) { animation: emergence 0.4s ease 0.05s both; }
+.stagger-children > *:nth-child(2) { animation: emergence 0.4s ease 0.12s both; }
+.stagger-children > *:nth-child(3) { animation: emergence 0.4s ease 0.19s both; }
+.stagger-children > *:nth-child(4) { animation: emergence 0.4s ease 0.26s both; }
+.stagger-children > *:nth-child(5) { animation: emergence 0.4s ease 0.33s both; }
+
+/* ======================== SCROLLBAR ======================== */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--bf-parchment); }
+::-webkit-scrollbar-thumb { background: var(--bf-border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--bf-teal-light); }
+
+/* ======================== SECTION WRAPPERS ======================== */
+.bf-page { padding: 2rem; max-width: 1320px; margin: 0 auto; }
+.bf-section-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--bf-charcoal);
+  margin-bottom: 0.25rem;
+}
+.bf-section-subtitle {
+  font-size: 0.88rem;
+  color: var(--bf-slate);
+  margin-bottom: 1.75rem;
+}
+
+/* ======================== LEDGER CHAIN ======================== */
+.ledger-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.ledger-chain::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--bf-teal), var(--bf-amber), var(--bf-magenta));
+  border-radius: 2px;
+  z-index: 0;
+}
+.ledger-block {
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem 0;
+}
+.ledger-block__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #FFF;
+  flex-shrink: 0;
+  margin-top: 1rem;
+  margin-left: 20px;
+  box-shadow: 0 0 0 2px var(--bf-teal);
+}
+.ledger-block__dot--genesis { box-shadow: 0 0 0 2px var(--bf-amber-light), 0 0 12px var(--bf-amber-glow); }
+
+/* ======================== DROWSINESS PANEL ======================== */
+.drowsy-canvas-wrap {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bf-charcoal);
+}
+.drowsy-gauge {
+  height: 10px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--bf-emerald), var(--bf-amber), var(--bf-magenta));
+  transition: width 0.4s ease;
+}
