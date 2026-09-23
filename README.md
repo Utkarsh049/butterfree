@@ -2,8 +2,6 @@
 
 An end-to-end intelligent companion app for operators of CAT (Caterpillar) construction machinery — designed to improve **efficiency, safety, and training** throughout the operator's workday.
 
-Built for [Hackathon/Challenge Name] by [Team Name].
-
 ---
 
 ##  Problem Statement
