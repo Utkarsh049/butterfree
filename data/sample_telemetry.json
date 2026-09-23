@@ -1,0 +1,39 @@
+[
+  {
+    "timestamp": "2026-09-23T08:00:00Z",
+    "machine_id": "CAT-EX-320",
+    "operator_id": "OP-401",
+    "engine_hours": 1250.5,
+    "fuel_used_liters": 18.2,
+    "load_cycles": 14,
+    "idling_time_min": 8,
+    "seatbelt_status": "Fastened",
+    "proximity_distance_m": 8.5,
+    "safety_alert_triggered": false
+  },
+  {
+    "timestamp": "2026-09-23T09:15:00Z",
+    "machine_id": "CAT-EX-320",
+    "operator_id": "OP-401",
+    "engine_hours": 1251.75,
+    "fuel_used_liters": 22.0,
+    "load_cycles": 18,
+    "idling_time_min": 12,
+    "seatbelt_status": "Unfastened",
+    "proximity_distance_m": 6.0,
+    "safety_alert_triggered": true
+  },
+  {
+    "timestamp": "2026-09-23T10:30:00Z",
+    "machine_id": "CAT-LD-950",
+    "operator_id": "OP-312",
+    "engine_hours": 3410.2,
+    "fuel_used_liters": 35.4,
+    "load_cycles": 2,
+    "idling_time_min": 52,
+    "seatbelt_status": "Fastened",
+    "proximity_distance_m": 2.1,
+    "safety_alert_triggered": true
+  }
+]
+

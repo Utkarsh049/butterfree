@@ -1,0 +1,32 @@
+:root {
+  --cat-yellow: #FFCD11;
+  --cat-black: #1A1A1A;
+  --cat-dark-gray: #2B2B2B;
+  --cat-light-gray: #F4F4F6;
+  --cat-border: #E0E0E0;
+  --cat-danger: #D32F2F;
+  --cat-warning: #ED6C02;
+  --cat-success: #2E7D32;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--cat-light-gray);
+  color: var(--cat-black);
+  line-height: 1.5;
+}
+
+button {
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+

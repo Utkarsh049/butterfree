@@ -1,0 +1,48 @@
+[
+  {
+    "task_id": "TSK-1001",
+    "task_type": "Excavation",
+    "weather": "Sunny",
+    "operator_skill": "Expert",
+    "machine_age_years": 3,
+    "estimated_time_min": 180,
+    "actual_time_min": 170
+  },
+  {
+    "task_id": "TSK-1002",
+    "task_type": "Trenching",
+    "weather": "Rainy",
+    "operator_skill": "Intermediate",
+    "machine_age_years": 5,
+    "estimated_time_min": 120,
+    "actual_time_min": 145
+  },
+  {
+    "task_id": "TSK-1003",
+    "task_type": "Loading",
+    "weather": "Cloudy",
+    "operator_skill": "Beginner",
+    "machine_age_years": 2,
+    "estimated_time_min": 90,
+    "actual_time_min": 115
+  },
+  {
+    "task_id": "TSK-1004",
+    "task_type": "Grading",
+    "weather": "Windy",
+    "operator_skill": "Expert",
+    "machine_age_years": 1,
+    "estimated_time_min": 150,
+    "actual_time_min": 140
+  },
+  {
+    "task_id": "TSK-1005",
+    "task_type": "Demolition",
+    "weather": "Sunny",
+    "operator_skill": "Intermediate",
+    "machine_age_years": 7,
+    "estimated_time_min": 240,
+    "actual_time_min": 265
+  }
+]
+
