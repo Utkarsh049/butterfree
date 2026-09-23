@@ -61,3 +61,41 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+
+# Logs (npm / pip / build output)
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Frontend build output (Vite builds to dist/, not build/)
+frontend/dist/
+frontend/.vite/
+dist/
+coverage/
+.nyc_output/
+
+# Python extras
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.hypothesis/
+coverage.xml
+.coverage.*
+nosetests.xml
+
+# Jupyter / notebooks (ml-model/notebooks/)
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Local runtime databases (DATABASE_URL sqlite fallback)
+*.db
+*.sqlite3
+*.sqlite3-journal
+

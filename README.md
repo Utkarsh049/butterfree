@@ -20,10 +20,10 @@ Construction equipment like excavators and loaders is becoming increasingly digi
 
 ##  Tech Stack
 
-- **Frontend:** [React / Flutter / etc.]
-- **Backend:** [Node.js + Express / FastAPI / etc.]
-- **Database:** [PostgreSQL / MongoDB]
-- **ML Model:** [Python — scikit-learn / XGBoost]
+- **Frontend:** React 18 + Vite (dev server on port 3000)
+- **Backend:** Python FastAPI + Uvicorn (API at `http://localhost:8000/api/v1`, docs at `/docs`)
+- **Database:** In-memory store seeded from `data/*.json` (`DATABASE_URL` optional)
+- **ML Model:** Python — scikit-learn RandomForest (`saved_models/task_time_model.joblib`)
 - **Deployment:** [Vercel / Render / Docker]
 
 ##  Repository Structure
@@ -58,9 +58,9 @@ cd smart-operator-assistant
 cd frontend
 npm install
 
-# 3. Install backend dependencies
+# 3. Install backend dependencies (Python/FastAPI, not npm)
 cd ../backend
-npm install   # or: pip install -r requirements.txt
+pip install -r requirements.txt
 
 # 4. Install ML dependencies
 cd ../ml-model
@@ -76,15 +76,15 @@ cp .env.example .env
 ```bash
 # Start backend
 cd backend
-npm run dev          # or: uvicorn main:app --reload
+uvicorn app.main:app --reload --port 8000
 
 # Start frontend (new terminal)
 cd frontend
 npm run dev
 
-# Run ML model / notebook
+# Run ML model training
 cd ml-model
-python train.py
+python src/train.py
 ```
 
-Frontend runs at `http://localhost:3000`, backend API at `http://localhost:5000` (adjust per your config).
+Frontend runs at `http://localhost:3000`, backend API at `http://localhost:8000/api/v1` (docs at `http://localhost:8000/docs`).
