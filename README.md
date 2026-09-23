@@ -1,12 +1,12 @@
 # Smart Operator Assistant for CAT Machinery
 
-An end-to-end intelligent companion app for operators of CAT (Caterpillar) construction machinery — designed to improve **efficiency, safety, and training** throughout the operator's workday.
+An end-to-end intelligent companion app for operators of CAT (Caterpillar) construction machinery - designed to improve **efficiency, safety, and training** throughout the operator's workday.
 
 ---
 
 ##  Problem Statement
 
-Construction equipment like excavators and loaders is becoming increasingly digitalized, but the tools available to operators remain basic. This project builds a multi-functional operator interface that goes beyond a simple tool — an intelligent assistant that supports operators throughout their day.
+Construction equipment like excavators and loaders is becoming increasingly digitalized, but the tools available to operators remain basic. This project builds a multi-functional operator interface that goes beyond a simple tool - an intelligent assistant that supports operators throughout their day.
 
 ##  Features
 
@@ -15,7 +15,7 @@ Construction equipment like excavators and loaders is becoming increasingly digi
 |  **Daily Task Dashboard** | View scheduled tasks for the day at a glance |
 |  **Safety Features** | Real-time seatbelt compliance, proximity hazard alerts, and incident logging |
 |  **Operator Training Hub** | E-learning videos, instructor booking, or simulation modules |
-|  **Anomaly Detection** | Flags unusual machine usage — excessive idling, unsafe operation patterns |
+|  **Anomaly Detection** | Flags unusual machine usage - excessive idling, unsafe operation patterns |
 |  **Task Time Estimation** | Predicts task completion time using past data + environmental conditions (ML-based) |
 
 ##  Tech Stack
@@ -23,7 +23,7 @@ Construction equipment like excavators and loaders is becoming increasingly digi
 - **Frontend:** React 18 + Vite (dev server on port 3000)
 - **Backend:** Python FastAPI + Uvicorn (API at `http://localhost:8000/api/v1`, docs at `/docs`)
 - **Database:** In-memory store seeded from `data/*.json` (`DATABASE_URL` optional)
-- **ML Model:** Python — scikit-learn RandomForest (`saved_models/task_time_model.joblib`)
+- **ML Model:** Python - scikit-learn RandomForest (`saved_models/task_time_model.joblib`)
 - **Deployment:** [Vercel / Render / Docker]
 
 ##  Repository Structure
