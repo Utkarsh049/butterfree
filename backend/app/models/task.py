@@ -1,7 +1,7 @@
-"""Task data models."""
+"""Task data models with Explainable AI (XAI) schema."""
 
 from enum import Enum
-from typing import Optional
+from typing import Optional, List, Dict
 from pydantic import BaseModel, Field
 
 
@@ -15,7 +15,7 @@ class TaskType(str, Enum):
 
 class WeatherCondition(str, Enum):
     SUNNY = "Sunny"
-    RAINY = "RainY"
+    RAINY = "Rainy"
     CLOUDY = "Cloudy"
     WINDY = "Windy"
 
@@ -48,5 +48,15 @@ class TaskPredictionRequest(BaseModel):
     task_type: TaskType
     weather: WeatherCondition
     operator_skill: OperatorSkill
-    machine_age_years: int
+    machine_age_years: int = Field(ge=0, le=30)
 
+
+class TaskPredictionResponse(BaseModel):
+    task_type: TaskType
+    predicted_time_min: float
+    base_time_min: int
+    weather_delta_min: float
+    skill_delta_min: float
+    age_delta_min: float
+    explanation: str
+    feature_impacts: Dict[str, float]

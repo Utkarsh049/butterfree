@@ -3,9 +3,9 @@
 import uuid
 from typing import List
 from fastapi import APIRouter, HTTPException
-from ...models.task import Task, TaskCreate, TaskPredictionRequest
+from ...models.task import Task, TaskCreate, TaskPredictionRequest, TaskPredictionResponse
 from ...db.session import TASKS_DB
-from ...services.estimation_service import estimate_task_duration
+from ...services.estimation_service import estimate_task_duration_explainable
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -33,17 +33,22 @@ def get_task(task_id: str):
     return TASKS_DB[task_id]
 
 
-@router.post("/estimate")
+@router.post("/estimate", response_model=TaskPredictionResponse)
 def estimate_task(req: TaskPredictionRequest):
-    """Get ML-based task completion time estimation."""
-    predicted_time = estimate_task_duration(
+    """Get ML-based task completion time estimation with Explainable AI (XAI) feature attribution."""
+    prediction = estimate_task_duration_explainable(
         task_type=req.task_type.value,
         weather=req.weather.value,
         operator_skill=req.operator_skill.value,
         machine_age_years=req.machine_age_years,
     )
-    return {
-        "task_type": req.task_type,
-        "predicted_time_min": predicted_time,
-    }
-
+    return TaskPredictionResponse(
+        task_type=req.task_type,
+        predicted_time_min=prediction["predicted_time_min"],
+        base_time_min=prediction["base_time_min"],
+        weather_delta_min=prediction["weather_delta_min"],
+        skill_delta_min=prediction["skill_delta_min"],
+        age_delta_min=prediction["age_delta_min"],
+        explanation=prediction["explanation"],
+        feature_impacts=prediction["feature_impacts"],
+    )

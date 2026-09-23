@@ -32,6 +32,16 @@ export async function sendTelemetry(telemetry) {
   return res.json();
 }
 
+export async function syncTelemetryBatch(records) {
+  const res = await fetch(`${API_BASE}/telemetry/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ records }),
+  });
+  if (!res.ok) throw new Error("Failed to batch sync offline telemetry");
+  return res.json();
+}
+
 export async function fetchAlerts() {
   const res = await fetch(`${API_BASE}/alerts`);
   if (!res.ok) throw new Error("Failed to fetch alerts");
@@ -46,9 +56,14 @@ export async function acknowledgeAlert(alertId) {
   return res.json();
 }
 
+export async function fetchMachineHealthScore(machineId = "CAT-EX-320") {
+  const res = await fetch(`${API_BASE}/health-score/${machineId}`);
+  if (!res.ok) throw new Error("Failed to fetch machine health score");
+  return res.json();
+}
+
 export async function fetchTrainingModules() {
   const res = await fetch(`${API_BASE}/training/modules`);
   if (!res.ok) throw new Error("Failed to fetch training modules");
   return res.json();
 }
-

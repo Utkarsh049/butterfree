@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Header } from "./components/common/Header";
 import { AlertBanner } from "./components/common/AlertBanner";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -10,9 +10,14 @@ import {
   fetchTelemetry,
   fetchAlerts,
   fetchTrainingModules,
+  fetchMachineHealthScore,
   sendTelemetry,
+  syncTelemetryBatch,
   acknowledgeAlert,
 } from "./services/api";
+
+const OFFLINE_QUEUE_KEY = "cat_offline_telemetry_queue";
+const CACHED_TASKS_KEY = "cat_cached_tasks";
 
 export function App() {
   const [currentView, setCurrentView] = useState("dashboard");
@@ -20,21 +25,87 @@ export function App() {
   const [telemetry, setTelemetry] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [modules, setModules] = useState([]);
+  const [machineHealth, setMachineHealth] = useState(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [offlineQueue, setOfflineQueue] = useState([]);
 
-  // Load initial datasets from backend
+  // Load queued offline telemetry from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(OFFLINE_QUEUE_KEY);
+      if (stored) setOfflineQueue(JSON.parse(stored));
+      const cachedTasks = localStorage.getItem(CACHED_TASKS_KEY);
+      if (cachedTasks && tasks.length === 0) setTasks(JSON.parse(cachedTasks));
+    } catch (e) {
+      console.error("Local storage load error", e);
+    }
+  }, []);
+
+  // Save offline queue whenever updated
+  const updateOfflineQueue = (newQueue) => {
+    setOfflineQueue(newQueue);
+    try {
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(newQueue));
+    } catch (e) {
+      console.error("Failed saving offline queue", e);
+    }
+  };
+
+  // Sync offline records to backend
+  const handleSyncOffline = useCallback(async () => {
+    if (offlineQueue.length === 0) return;
+    try {
+      await syncTelemetryBatch(offlineQueue);
+      updateOfflineQueue([]);
+      // Refresh telemetry & alerts from server
+      const [telemData, alertData, healthData] = await Promise.all([
+        fetchTelemetry().catch(() => []),
+        fetchAlerts().catch(() => []),
+        fetchMachineHealthScore().catch(() => null),
+      ]);
+      if (telemData.length) setTelemetry(telemData);
+      if (alertData.length) setAlerts(alertData);
+      if (healthData) setMachineHealth(healthData);
+    } catch (err) {
+      console.warn("Sync failed, will retry next online event", err);
+    }
+  }, [offlineQueue]);
+
+  // Online / Offline listeners
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      handleSyncOffline();
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [handleSyncOffline]);
+
+  // Initial data loading
   useEffect(() => {
     async function loadData() {
       try {
-        const [tData, telemData, aData, mData] = await Promise.all([
+        const [tData, telemData, aData, mData, healthData] = await Promise.all([
           fetchTasks().catch(() => []),
           fetchTelemetry().catch(() => []),
           fetchAlerts().catch(() => []),
           fetchTrainingModules().catch(() => []),
+          fetchMachineHealthScore().catch(() => null),
         ]);
-        setTasks(tData);
+        if (tData.length > 0) {
+          setTasks(tData);
+          localStorage.setItem(CACHED_TASKS_KEY, JSON.stringify(tData));
+        }
         setTelemetry(telemData);
         setAlerts(aData);
         setModules(mData);
+        setMachineHealth(healthData);
       } catch (err) {
         console.error("Failed loading data", err);
       }
@@ -48,7 +119,13 @@ export function App() {
       ...newTask,
       status: "Scheduled",
     };
-    setTasks((prev) => [taskRecord, ...prev]);
+    const updated = [taskRecord, ...tasks];
+    setTasks(updated);
+    try {
+      localStorage.setItem(CACHED_TASKS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleAcknowledge = async (alertId) => {
@@ -62,26 +139,65 @@ export function App() {
     );
   };
 
+  const handleTakeBreak = () => {
+    // Reset continuous streak upon taking rest break
+    if (telemetry.length > 0) {
+      const latest = telemetry[telemetry.length - 1];
+      const refreshedTelem = {
+        ...latest,
+        continuous_run_hours: 0.0,
+        timestamp: new Date().toISOString(),
+      };
+      setTelemetry((prev) => [...prev, refreshedTelem]);
+    }
+    // Acknowledge fatigue/break alerts
+    setAlerts((prev) =>
+      prev.map((a) =>
+        a.alert_type === "Operator Rest Break Nudge" || a.alert_type === "Fatigue & Drowsiness Warning"
+          ? { ...a, acknowledged: true }
+          : a
+      )
+    );
+  };
+
   const handleSimulateTelemetry = async () => {
-    const isIncident = Math.random() > 0.5;
+    const isIncident = Math.random() > 0.45;
+    const currentStreak = telemetry.length > 0 ? (telemetry[telemetry.length - 1].continuous_run_hours ?? 1.2) : 1.2;
+    const nextStreak = Number((currentStreak + (isIncident ? 1.5 : 0.4)).toFixed(1));
+
     const mockTelemetry = {
       machine_id: "CAT-EX-320",
       operator_id: "OP-401",
       engine_hours: Number((1250 + Math.random() * 10).toFixed(1)),
       fuel_used_liters: Number((15 + Math.random() * 20).toFixed(1)),
-      load_cycles: Math.floor(Math.random() * 25),
-      idling_time_min: isIncident ? 52 : Math.floor(Math.random() * 30),
-      seatbelt_status: isIncident ? "Unfastened" : "Fastened",
-      proximity_distance_m: isIncident ? 1.8 : Number((4 + Math.random() * 6).toFixed(1)),
+      load_cycles: isIncident ? 1 : Math.floor(4 + Math.random() * 20),
+      idling_time_min: isIncident ? 48 : Math.floor(Math.random() * 20),
+      continuous_run_hours: nextStreak,
+      seatbelt_status: isIncident && Math.random() > 0.5 ? "Unfastened" : "Fastened",
+      proximity_distance_m: isIncident && Math.random() > 0.5 ? 1.8 : Number((4 + Math.random() * 6).toFixed(1)),
     };
+
+    if (!isOnline) {
+      // Offline buffering
+      const queued = [...offlineQueue, mockTelemetry];
+      updateOfflineQueue(queued);
+      setTelemetry((prev) => [...prev, { ...mockTelemetry, timestamp: new Date().toISOString() }]);
+      return;
+    }
 
     try {
       const saved = await sendTelemetry(mockTelemetry);
       setTelemetry((prev) => [...prev, saved]);
-      const refreshedAlerts = await fetchAlerts();
+      const [refreshedAlerts, refreshedHealth] = await Promise.all([
+        fetchAlerts().catch(() => []),
+        fetchMachineHealthScore().catch(() => null),
+      ]);
       setAlerts(refreshedAlerts);
+      if (refreshedHealth) setMachineHealth(refreshedHealth);
     } catch {
-      // Offline fallback
+      // Fallback offline queue
+      const queued = [...offlineQueue, mockTelemetry];
+      updateOfflineQueue(queued);
       setTelemetry((prev) => [...prev, { ...mockTelemetry, timestamp: new Date().toISOString() }]);
     }
   };
@@ -94,6 +210,9 @@ export function App() {
         currentView={currentView}
         setCurrentView={setCurrentView}
         activeAlertsCount={activeAlerts.length}
+        isOnline={isOnline}
+        offlineQueueCount={offlineQueue.length}
+        onSyncOffline={handleSyncOffline}
       />
 
       <main style={{ padding: "2rem", maxWidth: "1280px", margin: "0 auto", width: "100%" }}>
@@ -105,6 +224,7 @@ export function App() {
             onAddTask={handleAddTask}
             telemetry={telemetry}
             alerts={alerts}
+            machineHealth={machineHealth}
           />
         )}
 
@@ -113,6 +233,7 @@ export function App() {
             telemetry={telemetry}
             alerts={alerts}
             onAcknowledge={handleAcknowledge}
+            onTakeBreak={handleTakeBreak}
           />
         )}
 
@@ -121,6 +242,7 @@ export function App() {
         {currentView === "analytics" && (
           <AnalyticsPage
             telemetry={telemetry}
+            machineHealth={machineHealth}
             onSimulateTelemetry={handleSimulateTelemetry}
           />
         )}
@@ -130,4 +252,3 @@ export function App() {
 }
 
 export default App;
-

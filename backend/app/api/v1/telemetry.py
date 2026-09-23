@@ -1,9 +1,14 @@
-"""Telemetry ingestion and monitoring endpoints."""
+"""Telemetry ingestion and monitoring endpoints with offline sync support."""
 
 from datetime import datetime
 from typing import List
 from fastapi import APIRouter
-from ...models.telemetry import Telemetry, TelemetryCreate
+from ...models.telemetry import (
+    Telemetry,
+    TelemetryCreate,
+    TelemetryBatchSyncRequest,
+    TelemetryBatchSyncResponse,
+)
 from ...db.session import TELEMETRY_DB, ALERTS_DB
 from ...services.safety_engine import evaluate_telemetry_safety
 from ...services.anomaly_detector import detect_telemetry_anomalies
@@ -19,14 +24,14 @@ def get_telemetry():
 
 @router.post("", response_model=Telemetry)
 def ingest_telemetry(payload: TelemetryCreate):
-    """Ingest real-time machine telemetry and evaluate safety & anomaly rules."""
+    """Ingest real-time machine telemetry and evaluate safety, fatigue, & anomaly rules."""
     timestamp = payload.timestamp or datetime.utcnow()
     telemetry = Telemetry(
         timestamp=timestamp,
         **payload.model_dump(exclude={"timestamp"}),
     )
 
-    # Evaluate safety engine
+    # Evaluate safety engine (including fatigue / drowsiness inference)
     safety_alerts = evaluate_telemetry_safety(telemetry)
     # Evaluate anomaly detection engine
     anomaly_alerts = detect_telemetry_anomalies(telemetry)
@@ -39,3 +44,38 @@ def ingest_telemetry(payload: TelemetryCreate):
     TELEMETRY_DB.append(telemetry)
     return telemetry
 
+
+@router.post("/sync", response_model=TelemetryBatchSyncResponse)
+def sync_offline_telemetry(batch: TelemetryBatchSyncRequest):
+    """
+    Offline-First Sync Endpoint: Ingest a batch of telemetry records buffered
+    locally by the frontend while offline.
+    """
+    synced_count = 0
+    total_alerts_triggered = 0
+
+    for item in batch.records:
+        timestamp = item.timestamp or datetime.utcnow()
+        telemetry = Telemetry(
+            timestamp=timestamp,
+            **item.model_dump(exclude={"timestamp"}),
+        )
+
+        safety_alerts = evaluate_telemetry_safety(telemetry)
+        anomaly_alerts = detect_telemetry_anomalies(telemetry)
+        all_alerts = safety_alerts + anomaly_alerts
+
+        if all_alerts:
+            telemetry.safety_alert_triggered = True
+            ALERTS_DB.extend(all_alerts)
+            total_alerts_triggered += len(all_alerts)
+
+        TELEMETRY_DB.append(telemetry)
+        synced_count += 1
+
+    return TelemetryBatchSyncResponse(
+        status="success",
+        synced_records_count=synced_count,
+        alerts_triggered_count=total_alerts_triggered,
+        message=f"Successfully synced {synced_count} offline records with {total_alerts_triggered} safety events logged.",
+    )

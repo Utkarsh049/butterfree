@@ -7,6 +7,7 @@
     "fuel_used_liters": 18.2,
     "load_cycles": 14,
     "idling_time_min": 8,
+    "continuous_run_hours": 1.2,
     "seatbelt_status": "Fastened",
     "proximity_distance_m": 8.5,
     "safety_alert_triggered": false
@@ -19,6 +20,7 @@
     "fuel_used_liters": 22.0,
     "load_cycles": 18,
     "idling_time_min": 12,
+    "continuous_run_hours": 2.45,
     "seatbelt_status": "Unfastened",
     "proximity_distance_m": 6.0,
     "safety_alert_triggered": true
@@ -31,9 +33,9 @@
     "fuel_used_liters": 35.4,
     "load_cycles": 2,
     "idling_time_min": 52,
+    "continuous_run_hours": 3.7,
     "seatbelt_status": "Fastened",
     "proximity_distance_m": 2.1,
     "safety_alert_triggered": true
   }
 ]
-
