@@ -6,21 +6,21 @@ Built for [Hackathon/Challenge Name] by [Team Name].
 
 ---
 
-## 🚀 Problem Statement
+##  Problem Statement
 
 Construction equipment like excavators and loaders is becoming increasingly digitalized, but the tools available to operators remain basic. This project builds a multi-functional operator interface that goes beyond a simple tool — an intelligent assistant that supports operators throughout their day.
 
-## ✨ Features
+##  Features
 
 | Feature | Description |
 |---|---|
-| 📋 **Daily Task Dashboard** | View scheduled tasks for the day at a glance |
-| 🛡️ **Safety Features** | Real-time seatbelt compliance, proximity hazard alerts, and incident logging |
-| 🎓 **Operator Training Hub** | E-learning videos, instructor booking, or simulation modules |
-| ⚠️ **Anomaly Detection** | Flags unusual machine usage — excessive idling, unsafe operation patterns |
-| ⏱️ **Task Time Estimation** | Predicts task completion time using past data + environmental conditions (ML-based) |
+|  **Daily Task Dashboard** | View scheduled tasks for the day at a glance |
+|  **Safety Features** | Real-time seatbelt compliance, proximity hazard alerts, and incident logging |
+|  **Operator Training Hub** | E-learning videos, instructor booking, or simulation modules |
+|  **Anomaly Detection** | Flags unusual machine usage — excessive idling, unsafe operation patterns |
+|  **Task Time Estimation** | Predicts task completion time using past data + environmental conditions (ML-based) |
 
-## 🏗️ Tech Stack
+##  Tech Stack
 
 - **Frontend:** [React / Flutter / etc.]
 - **Backend:** [Node.js + Express / FastAPI / etc.]
@@ -28,7 +28,7 @@ Construction equipment like excavators and loaders is becoming increasingly digi
 - **ML Model:** [Python — scikit-learn / XGBoost]
 - **Deployment:** [Vercel / Render / Docker]
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 smart-operator-assistant/
@@ -41,7 +41,7 @@ smart-operator-assistant/
 └── README.md          # You are here
 ```
 
-## 🔧 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js ≥ 18.x
