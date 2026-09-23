@@ -38,6 +38,7 @@ smart-operator-assistant/
 ├── data/             # Sample + synthetic datasets
 ├── docs/             # Additional documentation, diagrams
 ├── PROJECT.md         # Detailed project design & architecture
+├── API.md             # API endpoints, data models & movement contracts
 └── README.md          # You are here
 ```
 

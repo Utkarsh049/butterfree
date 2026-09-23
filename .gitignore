@@ -49,6 +49,11 @@ htmlcov/
 !ml-model/saved_models/.gitkeep
 
 # IDEs & OS
+.opencode
+.openai
+.gemini
+.commandcode
+.claude
 .vscode/
 .idea/
 *.swp

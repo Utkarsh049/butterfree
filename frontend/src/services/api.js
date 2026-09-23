@@ -36,7 +36,7 @@ export async function syncTelemetryBatch(records) {
   const res = await fetch(`${API_BASE}/telemetry/sync`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ records }),
+    body: JSON.stringify({ client_id: "frontend-offline-client", records }),
   });
   if (!res.ok) throw new Error("Failed to batch sync offline telemetry");
   return res.json();
