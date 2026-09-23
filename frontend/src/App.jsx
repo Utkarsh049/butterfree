@@ -5,12 +5,15 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { SafetyPage } from "./pages/SafetyPage";
 import { TrainingPage } from "./pages/TrainingPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { LedgerPage } from "./pages/LedgerPage";
+import { DrowsinessPage } from "./pages/DrowsinessPage";
 import {
   fetchTasks,
   fetchTelemetry,
   fetchAlerts,
   fetchTrainingModules,
   fetchMachineHealthScore,
+  fetchLedger,
   sendTelemetry,
   syncTelemetryBatch,
   acknowledgeAlert,
@@ -26,22 +29,22 @@ export function App() {
   const [alerts, setAlerts] = useState([]);
   const [modules, setModules] = useState([]);
   const [machineHealth, setMachineHealth] = useState(null);
+  const [ledgerChain, setLedgerChain] = useState([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [offlineQueue, setOfflineQueue] = useState([]);
 
-  // Load queued offline telemetry from localStorage
+  // ── Load queued offline telemetry from localStorage ──
   useEffect(() => {
     try {
       const stored = localStorage.getItem(OFFLINE_QUEUE_KEY);
       if (stored) setOfflineQueue(JSON.parse(stored));
-      const cachedTasks = localStorage.getItem(CACHED_TASKS_KEY);
-      if (cachedTasks && tasks.length === 0) setTasks(JSON.parse(cachedTasks));
+      const cached = localStorage.getItem(CACHED_TASKS_KEY);
+      if (cached && tasks.length === 0) setTasks(JSON.parse(cached));
     } catch (e) {
       console.error("Local storage load error", e);
     }
   }, []);
 
-  // Save offline queue whenever updated
   const updateOfflineQueue = (newQueue) => {
     setOfflineQueue(newQueue);
     try {
@@ -51,34 +54,41 @@ export function App() {
     }
   };
 
-  // Sync offline records to backend
+  // ── Refresh ledger from backend ──
+  const refreshLedger = useCallback(async () => {
+    try {
+      const chain = await fetchLedger();
+      setLedgerChain(chain);
+    } catch {
+      // silently ignore — ledger displays existing state
+    }
+  }, []);
+
+  // ── Sync offline records to backend ──
   const handleSyncOffline = useCallback(async () => {
     if (offlineQueue.length === 0) return;
     try {
       await syncTelemetryBatch(offlineQueue);
       updateOfflineQueue([]);
-      // Refresh telemetry & alerts from server
-      const [telemData, alertData, healthData] = await Promise.all([
+      const [telemData, alertData, healthData, chain] = await Promise.all([
         fetchTelemetry().catch(() => []),
         fetchAlerts().catch(() => []),
         fetchMachineHealthScore().catch(() => null),
+        fetchLedger().catch(() => ledgerChain),
       ]);
       if (telemData.length) setTelemetry(telemData);
       if (alertData.length) setAlerts(alertData);
       if (healthData) setMachineHealth(healthData);
+      setLedgerChain(chain);
     } catch (err) {
       console.warn("Sync failed, will retry next online event", err);
     }
-  }, [offlineQueue]);
+  }, [offlineQueue, ledgerChain]);
 
-  // Online / Offline listeners
+  // ── Online / Offline listeners ──
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      handleSyncOffline();
-    };
+    const handleOnline = () => { setIsOnline(true); handleSyncOffline(); };
     const handleOffline = () => setIsOnline(false);
-
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
     return () => {
@@ -87,16 +97,17 @@ export function App() {
     };
   }, [handleSyncOffline]);
 
-  // Initial data loading
+  // ── Initial data load ──
   useEffect(() => {
     async function loadData() {
       try {
-        const [tData, telemData, aData, mData, healthData] = await Promise.all([
+        const [tData, telemData, aData, mData, healthData, chain] = await Promise.all([
           fetchTasks().catch(() => []),
           fetchTelemetry().catch(() => []),
           fetchAlerts().catch(() => []),
           fetchTrainingModules().catch(() => []),
           fetchMachineHealthScore().catch(() => null),
+          fetchLedger().catch(() => []),
         ]);
         if (tData.length > 0) {
           setTasks(tData);
@@ -106,6 +117,7 @@ export function App() {
         setAlerts(aData);
         setModules(mData);
         setMachineHealth(healthData);
+        setLedgerChain(chain);
       } catch (err) {
         console.error("Failed loading data", err);
       }
@@ -113,6 +125,7 @@ export function App() {
     loadData();
   }, []);
 
+  // ── Handlers ──
   const handleAddTask = (newTask) => {
     const taskRecord = {
       task_id: `TSK-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -121,36 +134,19 @@ export function App() {
     };
     const updated = [taskRecord, ...tasks];
     setTasks(updated);
-    try {
-      localStorage.setItem(CACHED_TASKS_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(CACHED_TASKS_KEY, JSON.stringify(updated)); } catch { }
   };
 
   const handleAcknowledge = async (alertId) => {
-    try {
-      await acknowledgeAlert(alertId);
-    } catch {
-      // Local fallback
-    }
-    setAlerts((prev) =>
-      prev.map((a) => (a.id === alertId ? { ...a, acknowledged: true } : a))
-    );
+    try { await acknowledgeAlert(alertId); } catch { }
+    setAlerts((prev) => prev.map((a) => (a.id === alertId ? { ...a, acknowledged: true } : a)));
   };
 
   const handleTakeBreak = () => {
-    // Reset continuous streak upon taking rest break
     if (telemetry.length > 0) {
       const latest = telemetry[telemetry.length - 1];
-      const refreshedTelem = {
-        ...latest,
-        continuous_run_hours: 0.0,
-        timestamp: new Date().toISOString(),
-      };
-      setTelemetry((prev) => [...prev, refreshedTelem]);
+      setTelemetry((prev) => [...prev, { ...latest, continuous_run_hours: 0.0, timestamp: new Date().toISOString() }]);
     }
-    // Acknowledge fatigue/break alerts
     setAlerts((prev) =>
       prev.map((a) =>
         a.alert_type === "Operator Rest Break Nudge" || a.alert_type === "Fatigue & Drowsiness Warning"
@@ -159,6 +155,21 @@ export function App() {
       )
     );
   };
+
+  // ── Drowsiness alert from webcam AI ──
+  const handleDrowsinessAlert = useCallback((earValue) => {
+    const syntheticAlert = {
+      id: `ALT-DRW-FE-${Date.now().toString(16).slice(-6)}`,
+      alert_type: "Fatigue & Drowsiness Warning",
+      severity: "High",
+      machine_id: "CAT-EX-320",
+      operator_id: "OP-401",
+      message: `Drowsiness detected by camera AI — Eye Aspect Ratio dropped to ${earValue?.toFixed(3) ?? "N/A"}. Immediate rest required.`,
+      timestamp: new Date().toISOString(),
+      acknowledged: false,
+    };
+    setAlerts((prev) => [syntheticAlert, ...prev]);
+  }, []);
 
   const handleSimulateTelemetry = async () => {
     const isIncident = Math.random() > 0.45;
@@ -178,7 +189,6 @@ export function App() {
     };
 
     if (!isOnline) {
-      // Offline buffering
       const queued = [...offlineQueue, mockTelemetry];
       updateOfflineQueue(queued);
       setTelemetry((prev) => [...prev, { ...mockTelemetry, timestamp: new Date().toISOString() }]);
@@ -188,14 +198,15 @@ export function App() {
     try {
       const saved = await sendTelemetry(mockTelemetry);
       setTelemetry((prev) => [...prev, saved]);
-      const [refreshedAlerts, refreshedHealth] = await Promise.all([
+      const [refreshedAlerts, refreshedHealth, chain] = await Promise.all([
         fetchAlerts().catch(() => []),
         fetchMachineHealthScore().catch(() => null),
+        fetchLedger().catch(() => ledgerChain),
       ]);
       setAlerts(refreshedAlerts);
       if (refreshedHealth) setMachineHealth(refreshedHealth);
+      setLedgerChain(chain);
     } catch {
-      // Fallback offline queue
       const queued = [...offlineQueue, mockTelemetry];
       updateOfflineQueue(queued);
       setTelemetry((prev) => [...prev, { ...mockTelemetry, timestamp: new Date().toISOString() }]);
@@ -215,7 +226,7 @@ export function App() {
         onSyncOffline={handleSyncOffline}
       />
 
-      <main style={{ padding: "2rem", maxWidth: "1280px", margin: "0 auto", width: "100%" }}>
+      <main style={{ padding: "2rem", maxWidth: "1320px", margin: "0 auto", width: "100%", flex: 1 }}>
         <AlertBanner alerts={activeAlerts} onAcknowledge={handleAcknowledge} />
 
         {currentView === "dashboard" && (
@@ -227,7 +238,6 @@ export function App() {
             machineHealth={machineHealth}
           />
         )}
-
         {currentView === "safety" && (
           <SafetyPage
             telemetry={telemetry}
@@ -236,9 +246,9 @@ export function App() {
             onTakeBreak={handleTakeBreak}
           />
         )}
-
-        {currentView === "training" && <TrainingPage modules={modules} />}
-
+        {currentView === "drowsiness" && (
+          <DrowsinessPage onDrowsinessAlert={handleDrowsinessAlert} />
+        )}
         {currentView === "analytics" && (
           <AnalyticsPage
             telemetry={telemetry}
@@ -246,6 +256,13 @@ export function App() {
             onSimulateTelemetry={handleSimulateTelemetry}
           />
         )}
+        {currentView === "ledger" && (
+          <LedgerPage
+            chain={ledgerChain}
+            setChain={setLedgerChain}
+          />
+        )}
+        {currentView === "training" && <TrainingPage modules={modules} />}
       </main>
     </div>
   );

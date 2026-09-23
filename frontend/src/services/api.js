@@ -67,3 +67,16 @@ export async function fetchTrainingModules() {
   if (!res.ok) throw new Error("Failed to fetch training modules");
   return res.json();
 }
+
+export async function fetchLedger() {
+  const res = await fetch(`${API_BASE}/ledger`);
+  if (!res.ok) throw new Error("Failed to fetch ledger");
+  return res.json();
+}
+
+export async function verifyLedger() {
+  const res = await fetch(`${API_BASE}/ledger/verify`);
+  if (!res.ok) throw new Error("Failed to verify ledger");
+  return res.json();
+}
+
